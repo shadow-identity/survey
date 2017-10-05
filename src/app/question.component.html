@@ -1,0 +1,27 @@
+<div *ngIf="question">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3>{{question.question}}</h3>
+        </div>
+        <div class="panel-body">
+            <div class="list-group">
+                <a href="#"
+                   *ngFor="let option of question.options"
+                   [class]="defineAnsweredClass(option) + ' list-group-item'"
+                   [ngClass]="{'survey-disabled': isSubmitted}"
+                   (click)="!isSubmitted && onOptionSelect(option)">
+                    <input type="{{inputType}}" [checked]="isChecked(option.text)" [ngClass]="{'disabled': isSubmitted}">
+                    {{option.text}}
+                </a>
+            </div>
+        </div>
+        <div class="panel-footer">
+            <div *ngIf="!isSubmitted; else nextButton">
+                <input class="btn btn-default" type="submit" value="Submit" (click)="onSubmit()">
+            </div>
+            <ng-template #nextButton>
+                <input class="btn btn-default" type="submit" value="Next" (click)="onNext()">
+            </ng-template>
+        </div>
+    </div>
+</div>

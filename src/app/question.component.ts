@@ -1,32 +1,10 @@
-import {Component} from '@angular/core';
-import {Option, Question} from './question';
+import {Component, EventEmitter, Input, OnChanges, OnInit, Output} from '@angular/core';
+import {Option, Question, Survey} from './survey';
 
 
 @Component({
-  selector: 'question',
-  template: `
-      <div class="panel panel-default">
-          <div class="panel-body">
-              <h3>{{question.question}}</h3>
-              <div class="list-group">
-                  <a href="#"
-                     *ngFor="let option of question.options"
-                     [class]="defineAnsweredClass(option) + ' list-group-item'"
-                     [ngClass]="{'survey-disabled': isSubmitted}"
-                     (click)="!isSubmitted && onOptionSelect(option)">
-                      <input type="{{inputType}}" [checked]="option.set" [ngClass]="{'disabled': isSubmitted}">
-                      {{option.text}} {{option.set}}
-                  </a>
-              </div>
-              <div *ngIf="!isSubmitted; else nextButton">
-                  <input class="btn btn-default" type="submit" value="Submit" (click)="onSubmit()">
-              </div>
-              <ng-template #nextButton>
-                  <input class="btn btn-default" type="submit" value="Next" (click)="onNext()">
-              </ng-template>
-          </div>
-      </div>
-  `,
+  selector: 'survey-question',
+  templateUrl: './question.component.html',
   styles: [`
       .survey-disabled {
           cursor: not-allowed;
@@ -34,14 +12,14 @@ import {Option, Question} from './question';
   `]
 })
 
-export class QuestionComponent {
-  question: Question = {
-    question: 'wat',
-    options: [{text: 'yep', shouldBeSet: true}, {text: 'nope', shouldBeSet: false}, {text: 'dont know', shouldBeSet: true}]
-  };
+export class QuestionComponent implements OnChanges {
 
-  inputType: string = this.getInputType();
+  @Input() question: Question = {question: '', options: []};
+  @Output() onNextPressed = new EventEmitter<boolean>();
+
+  inputType: string = '';
   isSubmitted: boolean = false;
+  answers: { text: string, set: boolean }[];
 
   getInputType(): string {
     const correctAnswersCount = this.question.options.filter(option => option.shouldBeSet === true).length;
@@ -50,33 +28,47 @@ export class QuestionComponent {
 
   onOptionSelect(option: Option): void {
     if (this.inputType === 'radio') {
-      this.question.options.filter(option => option.set === true).forEach(option => option.set = false)
+      this.answers.forEach(option => option.set = false);
     }
-    option.set = !option.set
+    let answer = this.answers.find(answerOption => option.text === answerOption.text)
+    this.findAnswer(option.text).set = !this.findAnswer(option.text).set
   }
 
+  findAnswer(text: string) {
+    return this.answers.find(answerOption => text === answerOption.text)
+  }
   onSubmit(): void {
     this.isSubmitted = true;
   }
 
-  onNext(): boolean {
-    return this.isAnswerCorrect()
+  isChecked(optionText: string): boolean {
+    return this.findAnswer(optionText).set
+  }
+
+  onNext(): void {
+    this.onNextPressed.emit(this.isAnswerCorrect())
   }
 
   defineAnsweredClass(option: Option): string {
     if (!this.isSubmitted) {
       return ''
-    } else if (option.set && option.set === option.shouldBeSet) {
-      return 'list-group-item-success'
-    } else if (option.set && option.set !== option.shouldBeSet) {
+    } else if (this.findAnswer(option.text).set && this.findAnswer(option.text).set !== option.shouldBeSet) {
       return 'list-group-item-danger'
     } else if (option.shouldBeSet) {
-      return 'list-group-item-info'
+      return 'list-group-item-success'
     }
   }
 
-  isAnswerCorrect() {
-    return this.question.options.filter(option => option.shouldBeSet === option.set).length
-      === this.question.options.filter(option => option.set === true).length
+  isAnswerCorrect(): boolean {
+    return this.question.options
+      .map(option => [option.shouldBeSet, this.findAnswer(option.text).set])
+      .reduce((acc, curr) => acc && curr[0] === curr[1], true);
+  }
+
+  ngOnChanges(): void {
+    this.isSubmitted = false;
+    // Unfortunately we can't use Object.assign to copy objects so we will work with map.
+    this.answers = this.question.options.map(option => ({text: option.text, set: false}));
+    this.inputType = this.getInputType();
   }
 }

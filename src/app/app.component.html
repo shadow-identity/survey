@@ -1,0 +1,14 @@
+<div class="row">
+    <div class="col-lg-6 col-lg-offset-3">
+        <h1 [innerHTML]="survey.name"></h1>
+        <div [ngSwitch]="appState">
+            <span *ngSwitchCase="appStates.loading">Loading...</span>
+            <survey-cycle *ngSwitchCase="appStates.asking" [questions]="survey.questions"
+                          (onResult)="onResult($event)"></survey-cycle>
+            <survey-result *ngSwitchCase="appStates.results"
+                           [correctAnswers]="result"
+                           [totalAnswers]="survey.questions.length"
+                           (doAgain)="doAgain()"></survey-result>
+        </div>
+    </div>
+</div>
