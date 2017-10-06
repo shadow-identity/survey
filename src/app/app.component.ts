@@ -3,7 +3,7 @@ import {SurveyService} from './survey.service';
 import {Survey} from './survey';
 
 @Component({
-  selector: 'my-app',
+  selector: 'survey',
   templateUrl: './app.component.html',
   providers: [SurveyService]
 })
