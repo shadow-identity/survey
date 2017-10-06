@@ -15,10 +15,9 @@ export let questionVegetables: Question = {
 };
 
 export let SURVEY: Survey = {
-  name: 'Test survey',
+  name: 'Example survey',
   questions: [
     question42,
     questionVegetables,
-    question42
   ]
 };
