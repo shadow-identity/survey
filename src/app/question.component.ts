@@ -1,5 +1,5 @@
-import {Component, EventEmitter, Input, OnChanges, OnInit, Output} from '@angular/core';
-import {Option, Question, Survey} from './survey';
+import {Component, EventEmitter, Input, OnChanges, Output} from '@angular/core';
+import {Option, Question} from './survey';
 
 
 @Component({
@@ -15,11 +15,13 @@ import {Option, Question, Survey} from './survey';
 export class QuestionComponent implements OnChanges {
 
   @Input() question: Question = {question: '', options: []};
+  @Input() counter: number[] = [0, 0];
   @Output() onNextPressed = new EventEmitter<boolean>();
 
   inputType: string = '';
   isSubmitted: boolean = false;
   answers: { text: string, set: boolean }[];
+  isAnyOptionSelected: boolean = false;
 
   getInputType(): string {
     const correctAnswersCount = this.question.options.filter(option => option.shouldBeSet === true).length;
@@ -30,15 +32,17 @@ export class QuestionComponent implements OnChanges {
     if (this.inputType === 'radio') {
       this.answers.forEach(option => option.set = false);
     }
-    let answer = this.answers.find(answerOption => option.text === answerOption.text)
-    this.findAnswer(option.text).set = !this.findAnswer(option.text).set
+    this.findAnswer(option.text).set = !this.findAnswer(option.text).set;
+    this.isAnyOptionSelected = !!this.answers.find(answerOption => answerOption.set === true);
   }
 
   findAnswer(text: string) {
     return this.answers.find(answerOption => text === answerOption.text)
   }
   onSubmit(): void {
-    this.isSubmitted = true;
+    if (this.isAnyOptionSelected) {
+      this.isSubmitted = true;
+    }
   }
 
   isChecked(optionText: string): boolean {

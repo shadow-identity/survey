@@ -6,6 +6,7 @@ import {Question} from './survey';
   selector: 'survey-cycle',
   template: `
       <survey-question [question]="question"
+                       [counter]="counter"
                        (onNextPressed)="onNextPressed($event)">
       </survey-question>
   `
@@ -17,10 +18,12 @@ export class SurveyCycleComponent implements OnInit {
 
   private correctCounter: number = 0;
   private questionNumber: number = 0;
+  counter: number[] = [0, 0];
   question: Question;
 
   onNextPressed(isCorrect: boolean): void {
     this.questionNumber++;
+    this.updateCounter();
     isCorrect && this.correctCounter++;
     if (this.questionNumber === this.questions.length) {
       this.onResult.emit(this.correctCounter)
@@ -28,7 +31,12 @@ export class SurveyCycleComponent implements OnInit {
     this.question = this.questions[this.questionNumber];
   }
 
+  updateCounter() {
+    this.counter = [this.questionNumber + 1, this.questions.length];
+  }
+
   ngOnInit() {
+    this.updateCounter();
     this.question = this.questions[this.questionNumber];
   }
 }
